@@ -26,12 +26,16 @@ export async function buildApp() {
 
   if (cfg.WORKER_PROXY_SECRET) {
     app.addHook("onRequest", async (request, reply) => {
-      const supplied = request.headers["x-hostbot-proxy-secret"];
-      if (
-        typeof supplied !== "string" ||
-        supplied.length !== cfg.WORKER_PROXY_SECRET.length ||
-        !timingSafeEqual(Buffer.from(supplied), Buffer.from(cfg.WORKER_PROXY_SECRET))
-      ) {
+      const matches = (provided: string | string[] | undefined, expected: string): boolean => {
+        if (typeof provided !== "string") return false;
+        const actualBytes = Buffer.from(provided);
+        const expectedBytes = Buffer.from(expected);
+        return actualBytes.length === expectedBytes.length && timingSafeEqual(actualBytes, expectedBytes);
+      };
+      const gatewayAuthorized = matches(request.headers["x-hostbot-proxy-secret"], cfg.WORKER_PROXY_SECRET);
+      const botAuthorized = matches(request.headers["x-bot-api-key"], cfg.BOT_API_KEY);
+      const adminAuthorized = matches(request.headers["x-admin-api-key"], cfg.ADMIN_API_KEY);
+      if (!gatewayAuthorized && !botAuthorized && !adminAuthorized) {
         return reply.code(401).send({
           error: { code: "invalid_gateway_secret", message: "API gateway authentication required." },
         });
