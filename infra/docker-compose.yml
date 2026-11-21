@@ -1,0 +1,72 @@
+# Production compose file for the VPS.
+#
+#   sudo mkdir -p /srv/hostbot/data
+#   cp .env.example .env && nano .env      # set DOCKER_ENABLED=true
+#   docker build -f infra/runtime-node/Dockerfile -t hostbot/runtime-node:22 .
+#   docker compose -f infra/docker-compose.yml up -d --build
+#
+# The API must see the bot source directory at the SAME absolute path that the
+# Docker daemon uses for bind mounts. That is why HOSTBOT_DATA_DIR defaults to
+# /srv/hostbot/data on both sides. Do not change only one side.
+name: hostbot
+
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: infra/api.Dockerfile
+    image: hostbot/api:latest
+    env_file:
+      - ../.env
+    environment:
+      NODE_ENV: production
+      DATA_DIR: /srv/hostbot/data
+      BOT_DOCKER_NETWORK: hostbot-bots
+    ports:
+      - "3001:3001"
+    networks:
+      - default
+      - bots
+    volumes:
+      - ${HOSTBOT_DATA_DIR:-/srv/hostbot/data}:${HOSTBOT_DATA_DIR:-/srv/hostbot/data}
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  bot:
+    build:
+      context: ..
+      dockerfile: infra/bot.Dockerfile
+    image: hostbot/bot:latest
+    env_file:
+      - ../.env
+    environment:
+      NODE_ENV: production
+      API_BASE_URL: http://api:3001
+      ENV_FILE: /dev/null
+    depends_on:
+      - api
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  default:
+    name: hostbot-control
+  bots:
+    name: hostbot-bots
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.enable_icc: "false"
+      com.docker.network.bridge.enable_ip_masquerade: "true"

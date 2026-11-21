@@ -1,0 +1,30 @@
+{
+  "name": "discord-bot-hosting",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Discord bot hosting platform (management bot + API + web dashboard)",
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev:api": "npm run dev -w @hostbot/api",
+    "dev:bot": "npm run dev -w @hostbot/bot",
+    "dev:web": "npm run dev -w @hostbot/web",
+    "build": "npm run build --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "register-commands": "npm run register-commands -w @hostbot/bot",
+    "format:check": "node -e \"console.log('no formatter configured')\""
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "tsx": "^4.19.2",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.3"
+  }
+}
