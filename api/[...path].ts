@@ -53,7 +53,7 @@ export default function handler(req: IncomingMessage, res: ServerResponse): void
     });
   } catch { sendError(res, 502, "worker_unavailable", "Could not connect to the hosting worker."); return; }
 
-  upstream.setTimeout(270_000, () => upstream.destroy(new Error("Worker request timed out")));
+  upstream.setTimeout(55_000, () => upstream.destroy(new Error("Worker request timed out")));
   upstream.on("error", () => sendError(res, 502, "worker_unavailable", "The hosting worker is unavailable."));
   if (req.method === "GET" || req.method === "HEAD") upstream.end();
   else req.pipe(upstream);
