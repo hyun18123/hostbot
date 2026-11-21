@@ -19,6 +19,7 @@ const envSchema = z.object({
 
   BOT_API_KEY: z.string().min(24),
   ADMIN_API_KEY: z.string().min(24),
+  WORKER_PROXY_SECRET: z.string().optional().default(""),
   TOKEN_ENCRYPTION_KEY: z.string().min(20),
 
   DATA_DIR: z.string().default("./data"),
