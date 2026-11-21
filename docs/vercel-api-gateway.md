@@ -7,7 +7,8 @@ HostBot's HTTP API is exposed through Vercel Functions, while the stateful hosti
 - Vercel project: repository root (`.`), deploys `api/[...path].ts`.
 - Worker VPS: runs the existing `apps/api` Fastify process and Docker daemon.
 - Supabase: persistent database.
-- Dashboard and management bot: use the Vercel API URL as `API_BASE_URL`.
+- Web dashboard: uses the Vercel API URL as `API_BASE_URL`.
+- Management bot in Docker Compose: keeps using the private Docker-network URL `http://api:3001`, so ZIP uploads bypass Vercel request-body limits.
 - The Vercel gateway forwards requests to the worker over HTTPS and adds a private proxy header.
 
 The worker must remain running on the VPS. Do not deploy `apps/api/src/index.ts` as a Vercel Function: it starts Docker, a scheduler, a Pushbullet WebSocket, and relies on persistent local disk.
