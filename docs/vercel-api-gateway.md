@@ -39,7 +39,7 @@ Keep the existing Docker Compose deployment for `apps/api` and the management bo
 WORKER_PROXY_SECRET=<same random secret as Vercel>
 ```
 
-The API rejects requests that do not carry the matching private gateway header whenever this variable is set. Keep the worker origin HTTPS-only and restrict inbound traffic to the Vercel gateway where practical. Keep Docker enabled only on this worker.
+When this variable is set, the API accepts either the private gateway header or the existing authenticated management/admin API keys. This keeps the management bot working over the private Docker network while the dashboard and webhook traffic can pass through Vercel. Keep the worker origin HTTPS-only and restrict inbound traffic to the Vercel gateway and trusted management-bot network where practical. Keep Docker enabled only on this worker.
 
 The worker still needs the existing application variables, including Supabase credentials, `BOT_API_KEY`, `ADMIN_API_KEY`, and `TOKEN_ENCRYPTION_KEY`. Do not put these values in public client-side variables.
 
