@@ -1,4 +1,5 @@
 import Fastify from "fastify";
+import { timingSafeEqual } from "node:crypto";
 import cors from "@fastify/cors";
 import multipart from "@fastify/multipart";
 import { ZodError } from "zod";
@@ -22,6 +23,21 @@ export async function buildApp() {
     bodyLimit: 2 * 1024 * 1024,
     requestTimeout: 120_000,
   });
+
+  if (cfg.WORKER_PROXY_SECRET) {
+    app.addHook("onRequest", async (request, reply) => {
+      const supplied = request.headers["x-hostbot-proxy-secret"];
+      if (
+        typeof supplied !== "string" ||
+        supplied.length !== cfg.WORKER_PROXY_SECRET.length ||
+        !timingSafeEqual(Buffer.from(supplied), Buffer.from(cfg.WORKER_PROXY_SECRET))
+      ) {
+        return reply.code(401).send({
+          error: { code: "invalid_gateway_secret", message: "API gateway authentication required." },
+        });
+      }
+    });
+  }
 
   await app.register(multipart, {
     limits: {
